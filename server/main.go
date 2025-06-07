@@ -3,13 +3,14 @@ package main
 import (
 	"backend/handlers"
 	"backend/middleware"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
-
+	r.Use(cors.Default())
+	
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
 
