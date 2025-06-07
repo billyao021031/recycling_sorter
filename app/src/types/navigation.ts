@@ -1,9 +1,7 @@
 export type RootStackParamList = {
-  Main: undefined;
-  Camera: undefined;
-  History: undefined;
-  Profile: undefined;
-  MaterialDetails: { materialId: string };
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
 };
 
 export type MainTabParamList = {

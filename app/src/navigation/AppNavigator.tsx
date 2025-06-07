@@ -4,6 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootStackParamList, MainTabParamList } from '../types/navigation';
 import { MaterialIcons } from '@expo/vector-icons';
+import LoginScreen from "../screens/LoginScreen";
+import RegisterScreen from "../screens/RegisterScreen";
+import { useAuth } from "../context/AuthContext";
 
 // Import screens
 import HomeScreen from '../screens/HomeScreen';
@@ -49,19 +52,19 @@ const MainTabs = () => {
 };
 
 const AppNavigator = () => {
+  const { token } = useAuth();
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen 
-          name="Main" 
-          component={MainTabs} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="MaterialDetails" 
-          component={MaterialDetailsScreen}
-          options={{ title: 'Material Details' }}
-        />
+        {!token ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
