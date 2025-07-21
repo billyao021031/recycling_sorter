@@ -4,15 +4,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootStackParamList, MainTabParamList } from '../types/navigation';
 import { MaterialIcons } from '@expo/vector-icons';
-import LoginScreen from "../screens/LoginScreen";
-import RegisterScreen from "../screens/RegisterScreen";
+import LoginScreen from "../screens/LoginScreen/LoginScreen";
+import RegisterScreen from "../screens/RegisterScreen/RegisterScreen";
 import { useAuth } from "../context/AuthContext";
 
 // Import screens
-import HomeScreen from '../screens/HomeScreen';
-import HistoryScreen from '../screens/HistoryScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import MaterialDetailsScreen from '../screens/MaterialDetailsScreen';
+import HomeScreen from '../screens/HomeScreen/HomeScreen';
+import HistoryScreen from '../screens/HistoryScreen/HistoryScreen';
+import ProfileScreen from '../screens/ProfileScreen/ProfileScreen';
+import RebateListScreen from '../screens/RebateListScreen/RebateListScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -34,6 +34,9 @@ const MainTabs = () => {
             case 'Profile':
               iconName = 'person';
               break;
+            case 'Rebate':
+              iconName = 'attach-money';
+              break;
             default:
               iconName = 'help';
           }
@@ -46,6 +49,7 @@ const MainTabs = () => {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />
+      <Tab.Screen name="Rebate" component={RebateListScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
