@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import styles from './ProfileScreen.styles';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfileScreen = () => {
+  const { logout } = useAuth();
   const menuItems = [
     {
       id: '1',
@@ -80,7 +82,7 @@ const ProfileScreen = () => {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <MaterialIcons name="logout" size={24} color="white" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

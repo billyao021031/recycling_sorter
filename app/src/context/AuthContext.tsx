@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, register as apiRegister } from "../services/api";
 
 interface AuthContextType {
@@ -12,6 +13,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+
+  // Load token from AsyncStorage on mount
+  useEffect(() => {
+    (async () => {
+      const storedToken = await AsyncStorage.getItem("token");
+      if (storedToken) setToken(storedToken);
+    })();
+  }, []);
+
+  // Save token to AsyncStorage whenever it changes
+  useEffect(() => {
+    if (token) {
+      AsyncStorage.setItem("token", token);
+    } else {
+      AsyncStorage.removeItem("token");
+    }
+  }, [token]);
 
   const login = async (username: string, password: string) => {
     const res = await apiLogin(username, password);
