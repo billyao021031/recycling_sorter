@@ -1,43 +1,50 @@
-import torch
-import os
+import torch, os, io
 from PIL import Image
 import torchvision.transforms as transforms
-import io
-from .material_classifier import MaterialClassifier
+from .mobilenet_with_mass import MobileNetWithMass
+from .residual_material_classifier import ResidualMaterialClassifier
 
-CATEGORIES = ["Cardboard", "Glass", "Metal", "Paper", "Plastic", "Trash"]
-
-def load_model():
-    device = torch.device("mps")
-    model_path = os.path.join(os.path.dirname(__file__), "best_cm_model.pth")
-    model = MaterialClassifier(num_classes=len(CATEGORIES))
-    state_dict = torch.load(model_path, map_location=device)
-    model.load_state_dict(state_dict)
-    model.eval()
-    model.to(device)
-    return model, device
+CATEGORIES = ["Glass", "Metal", "Paper", "Plastic", "Trash"]
+ROOT = os.path.dirname(__file__)
+MODEL1_PATH = os.path.join(ROOT, "model1.pth")
+MODEL2_PATH = os.path.join(ROOT, "model2.pth")
 
 def preprocess_image(image_bytes):
-    transform = transforms.Compose([
+    t = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225]),
     ])
-    pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    tensor = transform(pil_image).unsqueeze(0)
-    return tensor
+    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    return t(img).unsqueeze(0)
 
-def run_inference(input_tensor, weight_grams):
-    model, device = load_model()
-    input_tensor = input_tensor.to(device)
-    weight_tensor = torch.tensor([[weight_grams]], dtype=torch.float32).to(device)
+def _predict(model, device, tensor, grams):
+    tensor = tensor.to(device)
+    mass = torch.tensor([[grams]], dtype=torch.float32).to(device)
     with torch.no_grad():
-        outputs = model(input_tensor, weight_tensor)
-        probs = torch.softmax(outputs, dim=1)
-        confidence, pred_idx = torch.max(probs, dim=1)
-        predicted_class = CATEGORIES[pred_idx.item()]
+        out = model(tensor, mass)
+
+        print("RAW logits:", out.squeeze().tolist())          ###
+        print("SOFTMAX:", torch.softmax(out, 1).squeeze().tolist())  ###
+        probs = torch.softmax(out, 1)
+        conf, idx = torch.max(probs, 1)
         return {
-            "predicted_class": predicted_class,
-            "confidence": float(confidence.item()),
-            "raw_output": outputs.cpu().numpy().tolist()
-        } 
+            "predicted_class": CATEGORIES[idx.item()],
+            "confidence": float(conf.item()),
+            "raw_output": out.cpu().numpy().tolist(),
+        }
+
+def run_inference_model1(tensor, weight_grams):
+    device = torch.device("mps")
+    m = MobileNetWithMass(len(CATEGORIES), pretrained=False)
+    m.load_state_dict(torch.load(MODEL1_PATH, map_location=device))
+    m.eval().to(device)
+    return _predict(m, device, tensor, weight_grams)
+
+def run_inference_model2(tensor, weight_grams):
+    device = torch.device("mps")
+    m = ResidualMaterialClassifier(len(CATEGORIES))
+    m.load_state_dict(torch.load(MODEL2_PATH, map_location=device))
+    m.eval().to(device)
+    return _predict(m, device, tensor, weight_grams)

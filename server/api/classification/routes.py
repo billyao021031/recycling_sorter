@@ -3,7 +3,11 @@ from sqlalchemy.orm import Session
 from db.deps import get_db
 from models import ClassificationLog
 from services.classification.image_upload import save_uploaded_image
-from services.classification.inference import preprocess_image, run_inference
+from services.classification.inference import (
+    preprocess_image,
+    run_inference_model1,
+    run_inference_model2,
+)
 import random, os
 
 router = APIRouter()
@@ -18,16 +22,45 @@ def to_dict(row: ClassificationLog) -> dict:
         "rebate": row.rebate
     }
 
-@router.post("/predict")
-async def predict(
+@router.post("/predict/model1")
+async def predict_model1(
     request: Request,
     image: UploadFile = File(...),
     weight: float = Form(...),
     db: Session = Depends(get_db)
 ):
+    weight = weight * 0.054
     img_bytes = await image.read()
     tensor = preprocess_image(img_bytes)
-    res = run_inference(tensor, weight_grams=weight)
+    res = run_inference_model1(tensor, weight_grams=weight)
+
+    filename = os.path.basename(save_uploaded_image(img_bytes, image.filename))
+    url = f"{DEV_BASE_URL}/static/{filename}"
+    rebate = round(random.uniform(0.1, 1.0), 2)
+
+    row = ClassificationLog(
+        predicted_class=res["predicted_class"],
+        confidence=res["confidence"],
+        raw_output=res["raw_output"],
+        image_url=url,
+        rebate=rebate,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return to_dict(row)
+
+@router.post("/predict/model2")
+async def predict_model2(
+    request: Request,
+    image: UploadFile = File(...),
+    weight: float = Form(...),
+    db: Session = Depends(get_db)
+):
+    weight = weight * 0.054
+    img_bytes = await image.read()
+    tensor = preprocess_image(img_bytes)
+    res = run_inference_model2(tensor, weight_grams=weight)
 
     filename = os.path.basename(save_uploaded_image(img_bytes, image.filename))
     url = f"{DEV_BASE_URL}/static/{filename}"
