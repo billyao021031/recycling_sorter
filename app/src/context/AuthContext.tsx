@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, register as apiRegister } from "../services/api";
 
@@ -31,28 +31,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token]);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     const res = await apiLogin(username, password);
     if (res.token) {
       setToken(res.token);
       return true;
     }
     return false;
-  };
+  }, []);
 
-  const register = async (username: string, password: string) => {
+  const register = useCallback(async (username: string, password: string) => {
     const res = await apiRegister(username, password);
     if (res.token) {
       setToken(res.token);
       return true;
     }
     return false;
-  };
+  }, []);
 
-  const logout = () => setToken(null);
+  const logout = useCallback(() => setToken(null), []);
+
+  const value = useMemo(
+    () => ({ token, login, register, logout }),
+    [token, login, register, logout]
+  );
 
   return (
-    <AuthContext.Provider value={{ token, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

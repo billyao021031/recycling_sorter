@@ -18,7 +18,7 @@ const HomeScreen = ({ navigation }: any) => {
   }, [results.length, current]);
 
   const hasResults = results.length > 0;
-  const currentResult = hasResults ? results[current] : null;
+  const currentResult = hasResults ? results[current] : undefined;
   const canFlip = results.length > 1;
 
   const handleFlip = (direction: 'left' | 'right') => {
@@ -30,6 +30,45 @@ const HomeScreen = ({ navigation }: any) => {
       }
     });
   };
+
+  let latestContent: React.ReactNode;
+  if (loading) {
+    latestContent = <ActivityIndicator size="large" color="#0F6B6E" style={{ marginTop: 16 }} />;
+  } else if (hasResults && currentResult) {
+    latestContent = (
+      <View>
+        <View style={styles.carouselRow}>
+          {canFlip && (
+            <IconButton icon="chevron-left" size={28} onPress={() => handleFlip("left")} />
+          )}
+          <Image source={{ uri: currentResult.image_url }} style={styles.previewImage} />
+          {canFlip && (
+            <IconButton icon="chevron-right" size={28} onPress={() => handleFlip("right")} />
+          )}
+        </View>
+        <View style={styles.resultPanel}>
+          <Text style={styles.resultTitle}>Classification result</Text>
+          <View style={styles.chipRow}>
+            <Chip icon="recycle" style={styles.infoChip}>
+              {currentResult.predicted_class}
+            </Chip>
+            <Chip icon="cash" style={styles.infoChip}>
+              ${currentResult.rebate?.toFixed(2) ?? "--"}
+            </Chip>
+            <Chip icon="signal" style={styles.infoChip}>
+              {currentResult.confidence ?? "--"}
+            </Chip>
+          </View>
+          <View style={styles.feedbackRow}>
+            <IconButton icon="thumb-up-outline" onPress={() => {}} />
+            <IconButton icon="thumb-down-outline" onPress={() => {}} />
+          </View>
+        </View>
+      </View>
+    );
+  } else {
+    latestContent = <Text style={styles.emptyState}>No image classified yet.</Text>;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,41 +109,7 @@ const HomeScreen = ({ navigation }: any) => {
               </Text>
               <Text style={styles.sectionSubtitle}>Top 3 from your recent scans</Text>
             </View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#0F6B6E" style={{ marginTop: 16 }} />
-            ) : !hasResults ? (
-              <Text style={styles.emptyState}>No image classified yet.</Text>
-            ) : (
-              <View>
-                <View style={styles.carouselRow}>
-                  {canFlip && (
-                    <IconButton icon="chevron-left" size={28} onPress={() => handleFlip("left")} />
-                  )}
-                  <Image source={{ uri: currentResult.image_url }} style={styles.previewImage} />
-                  {canFlip && (
-                    <IconButton icon="chevron-right" size={28} onPress={() => handleFlip("right")} />
-                  )}
-                </View>
-                <View style={styles.resultPanel}>
-                  <Text style={styles.resultTitle}>Classification result</Text>
-                  <View style={styles.chipRow}>
-                    <Chip icon="recycle" style={styles.infoChip}>
-                      {currentResult.predicted_class}
-                    </Chip>
-                    <Chip icon="cash" style={styles.infoChip}>
-                      ${currentResult.rebate?.toFixed(2) ?? "--"}
-                    </Chip>
-                    <Chip icon="signal" style={styles.infoChip}>
-                      {currentResult.confidence ?? "--"}
-                    </Chip>
-                  </View>
-                  <View style={styles.feedbackRow}>
-                    <IconButton icon="thumb-up-outline" onPress={() => { }} />
-                    <IconButton icon="thumb-down-outline" onPress={() => { }} />
-                  </View>
-                </View>
-              </View>
-            )}
+            {latestContent}
           </Card.Content>
         </Card>
 

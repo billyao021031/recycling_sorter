@@ -14,16 +14,18 @@ const RebateListScreen = () => {
     setError("");
     setLoading(true);
     try {
-      if (typeof token === 'string') {
-        const data = await getRebates(token);
-        setRebates(data);
-      } else {
+      if (typeof token !== 'string') {
         setError("No token found. Please log in again.");
+        return;
       }
-    } catch (e) {
+      const data = await getRebates(token);
+      setRebates(data);
+    } catch (error) {
+      console.error("Failed to fetch rebates", error);
       setError("Failed to fetch rebates");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
