@@ -17,3 +17,5 @@ We use Docker to run a MySQL database with persistent storage.
 3. To stop the services:
    ```bash
    docker compose down
+
+ngrok http --url=oriole-pleasing-swift.ngrok-free.app 8080

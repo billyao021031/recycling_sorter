@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Button, Card, Surface, Text } from 'react-native-paper';
 import styles from './ProfileScreen.styles';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,50 +44,66 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.header}>
-          <View style={styles.profileImage}>
-            <MaterialIcons name="person" size={50} color="#4CAF50" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={['#E2F2F1', '#F6F7F4']} style={styles.hero}>
+          <View style={styles.heroContent}>
+            <View style={styles.profileImage}>
+              <MaterialIcons name="person" size={44} color="#0F6B6E" />
+            </View>
+            <Text variant="titleLarge" style={styles.name}>
+              John Doe
+            </Text>
+            <Text style={styles.email}>john.doe@example.com</Text>
           </View>
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.email}>john.doe@example.com</Text>
-        </View>
+        </LinearGradient>
 
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>156</Text>
+        <View style={styles.statsRow}>
+          <Surface style={styles.statCard} elevation={0}>
+            <Text style={styles.statValue}>156</Text>
             <Text style={styles.statLabel}>Points</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>23</Text>
-            <Text style={styles.statLabel}>Items Recycled</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12.5</Text>
-            <Text style={styles.statLabel}>kg CO₂ Saved</Text>
-          </View>
+          </Surface>
+          <Surface style={styles.statCard} elevation={0}>
+            <Text style={styles.statValue}>23</Text>
+            <Text style={styles.statLabel}>Items recycled</Text>
+          </Surface>
+          <Surface style={styles.statCard} elevation={0}>
+            <Text style={styles.statValue}>$12.50</Text>
+            <Text style={styles.statLabel}>Rebate earned</Text>
+          </Surface>
         </View>
 
-        <View style={styles.menuContainer}>
-          {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.menuItem}
-              onPress={item.onPress}
-            >
-              <View style={styles.menuItemLeft}>
-                <MaterialIcons name={item.icon as any} size={24} color="#4CAF50" />
-                <Text style={styles.menuItemText}>{item.title}</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color="#666" />
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Card style={styles.menuCard}>
+          <Card.Content>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.menuItem,
+                  index < menuItems.length - 1 ? styles.menuDivider : null,
+                ]}
+                onPress={item.onPress}
+              >
+                <View style={styles.menuItemLeft}>
+                  <MaterialIcons name={item.icon as any} size={22} color="#0F6B6E" />
+                  <Text style={styles.menuItemText}>{item.title}</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={22} color="#8A9899" />
+              </TouchableOpacity>
+            ))}
+          </Card.Content>
+        </Card>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-          <MaterialIcons name="logout" size={24} color="white" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        <Button
+          mode="contained"
+          onPress={logout}
+          style={styles.logoutButton}
+          contentStyle={styles.logoutContent}
+          icon={({ size, color }) => (
+            <MaterialIcons name="logout" size={size} color={color} />
+          )}
+        >
+          Log out
+        </Button>
       </ScrollView>
     </SafeAreaView>
   );

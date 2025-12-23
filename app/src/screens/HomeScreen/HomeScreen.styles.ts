@@ -3,178 +3,133 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F6F7F4',
   },
-  header: {
-    padding: 20,
-    backgroundColor: '#4CAF50',
+  scrollContent: {
+    paddingBottom: 32,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
+  hero: {
+    paddingTop: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
-  subtitle: {
-    fontSize: 16,
-    color: 'white',
-    opacity: 0.8,
+  heroAccent: {
+    position: 'absolute',
+    top: -40,
+    right: -50,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: '#CFE7E2',
+    opacity: 0.6,
   },
-  uploadContainer: {
-    padding: 20,
-    backgroundColor: 'white',
-    marginTop: 10,
-    borderRadius: 10,
-    marginHorizontal: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  heroContent: {
+    gap: 12,
   },
-  uploadButton: {
-    backgroundColor: '#4CAF50',
+  heroTitle: {
+    color: '#0B2F33',
+  },
+  heroSubtitle: {
+    color: '#385457',
+  },
+  heroStats: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    justifyContent: 'center',
-  },
-  uploadButtonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  previewContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  previewImage: {
-    width: 350,
-    height: 350,
-    borderRadius: 20,
-    marginBottom: 10,
-    resizeMode: 'cover',
-    backgroundColor: '#E8F5E9',
-    alignSelf: 'center',
-  },
-  predictButton: {
-    backgroundColor: '#388E3C',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 5,
-  },
-  predictButtonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  resultContainer: {
-    marginTop: 20,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 10,
-    padding: 15,
-  },
-  resultTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#388E3C',
-    marginBottom: 8,
-  },
-  resultText: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 4,
-  },
-  resultValue: {
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 20,
-  },
-  statCard: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '45%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    flexWrap: 'wrap',
+    gap: 12,
     marginTop: 8,
   },
-  statLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+  heroStatCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
   },
-  quickActions: {
-    padding: 20,
+  heroStatValue: {
+    fontSize: 18,
+    color: '#0F6B6E',
+    fontWeight: '600',
+  },
+  heroStatLabel: {
+    fontSize: 12,
+    color: '#577375',
+  },
+  sectionCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+  },
+  sectionHeader: {
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    color: '#0B2F33',
   },
-  actionButton: {
-    backgroundColor: '#4CAF50',
+  sectionSubtitle: {
+    color: '#617779',
+    marginTop: 4,
+  },
+  emptyState: {
+    color: '#7C8B8C',
+    marginTop: 12,
+  },
+  carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    justifyContent: 'center',
+    gap: 6,
   },
-  actionButtonText: {
-    color: 'white',
+  previewImage: {
+    width: 300,
+    height: 300,
+    borderRadius: 22,
+    resizeMode: 'cover',
+    backgroundColor: '#E6F1EE',
+  },
+  resultPanel: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: '#F2F6F4',
+  },
+  resultTitle: {
     fontSize: 16,
-    marginLeft: 10,
+    fontWeight: '600',
+    color: '#0F6B6E',
+    marginBottom: 8,
   },
-  tipsContainer: {
-    padding: 20,
-  },
-  tipCard: {
-    backgroundColor: 'white',
+  chipRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  tipText: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#666',
+  infoChip: {
+    backgroundColor: '#FFFFFF',
   },
   feedbackRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-    gap: 24,
+    marginTop: 12,
   },
-  feedbackButton: {
-    padding: 8,
-    borderRadius: 20,
-    marginHorizontal: 8,
+  primaryButton: {
+    borderRadius: 14,
+  },
+  primaryButtonContent: {
+    paddingVertical: 6,
+  },
+  tipRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 12,
+  },
+  tipText: {
+    flex: 1,
+    color: '#5A6E70',
   },
 });
 
-export default styles; 
+export default styles;

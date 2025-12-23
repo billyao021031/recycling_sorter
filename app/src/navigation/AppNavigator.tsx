@@ -1,9 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { RootStackParamList, MainTabParamList } from '../types/navigation';
-import { MaterialIcons } from '@expo/vector-icons';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { RootStackParamList } from '../types/navigation';
 import LoginScreen from "../screens/LoginScreen/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen/RegisterScreen";
 import { useAuth } from "../context/AuthContext";
@@ -12,46 +11,24 @@ import { useAuth } from "../context/AuthContext";
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import HistoryScreen from '../screens/HistoryScreen/HistoryScreen';
 import ProfileScreen from '../screens/ProfileScreen/ProfileScreen';
-import RebateListScreen from '../screens/RebateListScreen/RebateListScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Drawer = createDrawerNavigator();
 
-const MainTabs = () => {
+const MainDrawer = () => {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          switch (route.name) {
-            case 'Home':
-              iconName = 'home';
-              break;
-            case 'History':
-              iconName = 'history';
-              break;
-            case 'Profile':
-              iconName = 'person';
-              break;
-            case 'Rebate':
-              iconName = 'attach-money';
-              break;
-            default:
-              iconName = 'help';
-          }
-
-          return <MaterialIcons name={iconName as any} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#4CAF50',
-        tabBarInactiveTintColor: 'gray',
-      })}
+    <Drawer.Navigator
+      screenOptions={{
+        headerShown: true,
+        headerTintColor: '#0B2F33',
+        headerTitleStyle: { fontWeight: '600' },
+        drawerActiveTintColor: '#0F6B6E',
+      }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="History" component={HistoryScreen} />
-      <Tab.Screen name="Rebate" component={RebateListScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
+      <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="History" component={HistoryScreen} />
+      <Drawer.Screen name="Profile" component={ProfileScreen} />
+    </Drawer.Navigator>
   );
 };
 
@@ -67,7 +44,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         ) : (
-          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="Home" component={MainDrawer} options={{ headerShown: false }} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
