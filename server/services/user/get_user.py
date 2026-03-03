@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -8,6 +9,7 @@ from services.auth.service import SECRET_KEY, ALGORITHM
 from models import User, KioskLock
 
 LOCK_ID = 1
+LOCK_TTL_SECONDS = int(os.getenv("KIOSK_LOCK_TTL_SECONDS", "300"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
