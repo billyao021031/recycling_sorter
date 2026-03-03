@@ -6,14 +6,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Card, Chip, Surface, Text } from "react-native-paper";
 import styles from "./HistoryScreen.styles";
 import { getHistory } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const HistoryScreen = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [activeFilter, setActiveFilter] = useState("All");
+  const { token } = useAuth();
 
   useEffect(() => {
-    getHistory().then(setHistory);
-  }, []);
+    if (!token) {
+      setHistory([]);
+      return;
+    }
+    getHistory(token).then(setHistory);
+  }, [token]);
 
   const categories = useMemo(() => {
     const unique = Array.from(new Set(history.map((item) => item.category)));

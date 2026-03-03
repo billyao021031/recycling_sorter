@@ -9,7 +9,7 @@ class ClassificationLog(Base):
     __tablename__ = "classification_logs"
 
     id              = Column(Integer, primary_key=True, index=True)
-    # user_id         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     predicted_class = Column(String(32), nullable=False)
     confidence      = Column(Float, nullable=False)
     raw_output      = Column(JSON)
@@ -17,4 +17,4 @@ class ClassificationLog(Base):
     rebate          = Column(Float)
     created_at      = Column(DateTime, default=dt.datetime.utcnow)
 
-    # user = relationship("User", back_populates="logs")
+    user = relationship("User", back_populates="logs")

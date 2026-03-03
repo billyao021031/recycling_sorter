@@ -6,9 +6,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Card, Text, Button, Surface, Chip, IconButton } from "react-native-paper";
 import styles from "./HomeScreen.styles";
 import { useLatestResults } from "../../hooks/useLatestResults";
+import { useAuth } from "../../context/AuthContext";
 
 const HomeScreen = ({ navigation }: any) => {
-  const { results, loading } = useLatestResults();
+  const { token } = useAuth();
+  const { results, loading } = useLatestResults(token);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import datetime as dt
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 from db import Base
 
 class User(Base):
@@ -12,3 +13,5 @@ class User(Base):
     first_name      = Column(String(64), nullable=False)
     last_name       = Column(String(64), nullable=False)
     created_at      = Column(DateTime, default=dt.datetime.utcnow)
+
+    logs = relationship("ClassificationLog", back_populates="user")

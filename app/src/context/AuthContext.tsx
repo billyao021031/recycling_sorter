@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login as apiLogin, register as apiRegister } from "../services/api";
+import { login as apiLogin, register as apiRegister, setAuthErrorHandler } from "../services/api";
 
 interface AuthContextType {
   token: string | null;
@@ -41,6 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       AsyncStorage.removeItem("token");
     }
   }, [token]);
+
+  useEffect(() => {
+    setAuthErrorHandler(() => setToken(null));
+    return () => setAuthErrorHandler(null);
+  }, []);
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await apiLogin(username, password);

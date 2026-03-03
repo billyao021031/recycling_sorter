@@ -1,10 +1,24 @@
 const API_URL = "http://localhost:8080";
 
+type AuthErrorHandler = (status: number) => void;
+let authErrorHandler: AuthErrorHandler | null = null;
+
+export function setAuthErrorHandler(handler: AuthErrorHandler | null) {
+  authErrorHandler = handler;
+}
+
+async function handleAuthError(res: Response) {
+  if (res.status === 401 || res.status === 423) {
+    authErrorHandler?.(res.status);
+  }
+}
+
 export async function login(username: string, password: string) {
   const fd = new FormData();
   fd.append("username", username);
   fd.append("password", password);
   const res = await fetch(`${API_URL}/auth/login`, { method: "POST", body: fd });
+  await handleAuthError(res);
   return res.json();
 }
 
@@ -26,6 +40,7 @@ export async function register(
       last_name: payload.last_name,
     }),
   });
+  await handleAuthError(res);
   return res.json();
 }
 
@@ -33,6 +48,7 @@ export async function getRebates(token: string) {
   const res = await fetch(`${API_URL}/rebates`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  await handleAuthError(res);
   return res.json();
 }
 
@@ -45,16 +61,23 @@ export async function createRebate(token: string, title: string, amount: number)
     },
     body: JSON.stringify({ title, amount }),
   });
+  await handleAuthError(res);
   return res.json();
 }
 
-export async function getLatestResults() {
-  const res = await fetch(`${API_URL}/classification/latest`);
+export async function getLatestResults(token: string) {
+  const res = await fetch(`${API_URL}/classification/latest`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  await handleAuthError(res);
   return res.json();
 }
 
-export async function getHistory() {
-  const res = await fetch(`${API_URL}/classification/history`);
+export async function getHistory(token: string) {
+  const res = await fetch(`${API_URL}/classification/history`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  await handleAuthError(res);
   return res.json();
 }
 
@@ -62,6 +85,7 @@ export async function getUserMe(token: string) {
   const res = await fetch(`${API_URL}/user/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  await handleAuthError(res);
   return res.json();
 }
 
@@ -77,5 +101,6 @@ export async function updateUserMe(
     },
     body: JSON.stringify(payload),
   });
+  await handleAuthError(res);
   return res.json();
 }

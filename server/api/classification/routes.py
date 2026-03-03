@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile, Request
+from fastapi import APIRouter, Depends, File, Form, UploadFile, Request, HTTPException
 from sqlalchemy.orm import Session
 from db.deps import get_db
-from models import ClassificationLog
+from models import ClassificationLog, User
 from services.classification.image_upload import save_uploaded_image
 from services.classification.inference import (
     preprocess_image,
@@ -9,6 +9,7 @@ from services.classification.inference import (
     run_inference_model2,
 )
 from schemas.classification import PredictionResponse, HistoryItem
+from services.user.get_user import get_current_user
 
 router = APIRouter()
 
@@ -26,8 +27,12 @@ async def predict_model1(
     request: Request,
     image: UploadFile = File(...),
     weight: float = Form(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
+    user = db.query(User).filter_by(username=current_user).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     weight = weight * 0.054
     img_bytes = await image.read()
     tensor = preprocess_image(img_bytes)
@@ -37,6 +42,7 @@ async def predict_model1(
     rebate = 0.1
 
     row = ClassificationLog(
+        user_id=user.id,
         predicted_class=res["predicted_class"],
         confidence=res["confidence"],
         raw_output=res["raw_output"],
@@ -53,8 +59,12 @@ async def predict_model2(
     request: Request,
     image: UploadFile = File(...),
     weight: float = Form(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
+    user = db.query(User).filter_by(username=current_user).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     weight = weight * 0.054
     img_bytes = await image.read()
     tensor = preprocess_image(img_bytes)
@@ -64,6 +74,7 @@ async def predict_model2(
     rebate = 0.1
 
     row = ClassificationLog(
+        user_id=user.id,
         predicted_class=res["predicted_class"],
         confidence=res["confidence"],
         raw_output=res["raw_output"],
@@ -76,9 +87,16 @@ async def predict_model2(
     return to_dict(row)
 
 @router.get("/latest", response_model=list[PredictionResponse])
-def latest(db: Session = Depends(get_db)):
+def latest(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    user = db.query(User).filter_by(username=current_user).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     rows = (
         db.query(ClassificationLog)
+          .filter(ClassificationLog.user_id == user.id)
           .order_by(ClassificationLog.created_at.desc())
           .limit(3)
           .all()
@@ -86,9 +104,16 @@ def latest(db: Session = Depends(get_db)):
     return [to_dict(r) for r in rows]
 
 @router.get("/history", response_model=list[HistoryItem])
-def history(db: Session = Depends(get_db)):
+def history(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    user = db.query(User).filter_by(username=current_user).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     rows = (
         db.query(ClassificationLog)
+          .filter(ClassificationLog.user_id == user.id)
           .order_by(ClassificationLog.created_at.desc())
           .all()
     )
