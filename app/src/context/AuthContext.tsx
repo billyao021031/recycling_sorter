@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login as apiLogin, register as apiRegister, setAuthErrorHandler } from "../services/api";
+import { login as apiLogin, register as apiRegister, setAuthErrorHandler, getKioskStatus } from "../services/api";
 
 interface AuthContextType {
   token: string | null;
   isBootstrapped: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (
+    username: string,
+    password: string
+  ) => Promise<{ ok: boolean; status?: number; detail?: string }>;
   register: (
     username: string,
     password: string,
@@ -25,7 +28,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     (async () => {
       try {
         const storedToken = await AsyncStorage.getItem("token");
-        if (storedToken) setToken(storedToken);
+        if (storedToken) {
+          const status = await getKioskStatus().catch(() => ({ is_locked: true }));
+          if (status?.is_locked) {
+            setToken(storedToken);
+          } else {
+            await AsyncStorage.removeItem("token");
+          }
+        }
       } finally {
         setIsBootstrapped(true);
       }
@@ -49,11 +59,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await apiLogin(username, password);
-    if (res.token) {
-      setToken(res.token);
-      return true;
+    const token = res?.data?.token;
+    if (res.ok && token) {
+      setToken(token);
+      return { ok: true };
     }
-    return false;
+    return { ok: false, status: res.status, detail: res?.data?.detail };
   }, []);
 
   const register = useCallback(

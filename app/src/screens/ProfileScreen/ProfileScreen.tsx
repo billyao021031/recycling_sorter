@@ -10,6 +10,7 @@ import styles from './ProfileScreen.styles';
 import { useAuth } from '../../context/AuthContext';
 import { getUserMe } from '../../services/api';
 import { RootStackParamList } from '../../types/navigation';
+import { useHistorySummary } from '../../hooks/useHistorySummary';
 
 const LogoutIcon = ({ size, color }: { size: number; color: string }) => (
   <MaterialIcons name="logout" size={size} color={color} />
@@ -25,6 +26,7 @@ const ProfileScreen = () => {
     last_name: '',
   });
   const [loading, setLoading] = useState(true);
+  const { count: itemCount, totalRebate } = useHistorySummary(token);
 
   const displayName = useMemo(() => {
     const name = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
@@ -106,15 +108,15 @@ const ProfileScreen = () => {
 
         <View style={styles.statsRow}>
           <Surface style={styles.statCard} elevation={0}>
-            <Text style={styles.statValue}>156</Text>
+            <Text style={styles.statValue}>{Math.round(totalRebate * 100)}</Text>
             <Text style={styles.statLabel}>Points</Text>
           </Surface>
           <Surface style={styles.statCard} elevation={0}>
-            <Text style={styles.statValue}>23</Text>
+            <Text style={styles.statValue}>{itemCount}</Text>
             <Text style={styles.statLabel}>Items recycled</Text>
           </Surface>
           <Surface style={styles.statCard} elevation={0}>
-            <Text style={styles.statValue}>$12.50</Text>
+            <Text style={styles.statValue}>${totalRebate.toFixed(2)}</Text>
             <Text style={styles.statLabel}>Rebate earned</Text>
           </Surface>
         </View>

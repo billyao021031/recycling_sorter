@@ -19,7 +19,8 @@ export async function login(username: string, password: string) {
   fd.append("password", password);
   const res = await fetch(`${API_URL}/auth/login`, { method: "POST", body: fd });
   await handleAuthError(res);
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
 }
 
 export async function register(
@@ -44,27 +45,6 @@ export async function register(
   return res.json();
 }
 
-export async function getRebates(token: string) {
-  const res = await fetch(`${API_URL}/rebates`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  await handleAuthError(res);
-  return res.json();
-}
-
-export async function createRebate(token: string, title: string, amount: number) {
-  const res = await fetch(`${API_URL}/rebates`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ title, amount }),
-  });
-  await handleAuthError(res);
-  return res.json();
-}
-
 export async function getLatestResults(token: string) {
   const res = await fetch(`${API_URL}/classification/latest`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -83,7 +63,7 @@ export async function getHistory(token: string) {
 
 export async function getUserMe(token: string) {
   const res = await fetch(`${API_URL}/user/me`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, "X-Activity": "1" },
   });
   await handleAuthError(res);
   return res.json();
@@ -98,9 +78,15 @@ export async function updateUserMe(
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      "X-Activity": "1",
     },
     body: JSON.stringify(payload),
   });
   await handleAuthError(res);
+  return res.json();
+}
+
+export async function getKioskStatus() {
+  const res = await fetch(`${API_URL}/auth/kiosk/status`);
   return res.json();
 }

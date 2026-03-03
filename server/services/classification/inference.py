@@ -2,12 +2,10 @@ import torch, os, io
 from PIL import Image
 import torchvision.transforms as transforms
 from .mobilenet_with_mass import MobileNetWithMass
-from .residual_material_classifier import ResidualMaterialClassifier
 
 CATEGORIES = ["Glass", "Metal", "Paper", "Plastic", "Trash"]
 ROOT = os.path.dirname(__file__)
-MODEL1_PATH = os.path.join(ROOT, "model1.pth")
-MODEL2_PATH = os.path.join(ROOT, "model2.pth")
+MODEL_PATH = os.path.join(ROOT, "model.pth")
 
 def preprocess_image(image_bytes):
     t = transforms.Compose([
@@ -35,16 +33,9 @@ def _predict(model, device, tensor, grams):
             "raw_output": out.cpu().numpy().tolist(),
         }
 
-def run_inference_model1(tensor, weight_grams):
+def run_inference_model(tensor, weight_grams):
     device = torch.device("mps")
     m = MobileNetWithMass(len(CATEGORIES), pretrained=False)
-    m.load_state_dict(torch.load(MODEL1_PATH, map_location=device))
-    m.eval().to(device)
-    return _predict(m, device, tensor, weight_grams)
-
-def run_inference_model2(tensor, weight_grams):
-    device = torch.device("mps")
-    m = ResidualMaterialClassifier(len(CATEGORIES))
-    m.load_state_dict(torch.load(MODEL2_PATH, map_location=device))
+    m.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     m.eval().to(device)
     return _predict(m, device, tensor, weight_grams)

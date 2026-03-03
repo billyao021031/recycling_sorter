@@ -13,8 +13,14 @@ const LoginScreen = ({ navigation }: any) => {
 
   const handleLogin = async () => {
     setError("");
-    const success = await login(username, password);
-    if (!success) setError("Login failed");
+    const res = await login(username, password);
+    if (!res.ok) {
+      if (res.status === 423) {
+        setError("Kiosk is currently in use. Please check back later.");
+      } else {
+        setError(res.detail || "Login failed");
+      }
+    }
   };
 
   return (

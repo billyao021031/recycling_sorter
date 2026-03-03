@@ -7,10 +7,12 @@ import { Card, Text, Button, Surface, Chip, IconButton } from "react-native-pape
 import styles from "./HomeScreen.styles";
 import { useLatestResults } from "../../hooks/useLatestResults";
 import { useAuth } from "../../context/AuthContext";
+import { useHistorySummary } from "../../hooks/useHistorySummary";
 
 const HomeScreen = ({ navigation }: any) => {
   const { token } = useAuth();
   const { results, loading } = useLatestResults(token);
+  const { count: itemCount, totalRebate } = useHistorySummary(token);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -88,14 +90,14 @@ const HomeScreen = ({ navigation }: any) => {
               <Surface style={styles.heroStatCard} elevation={0}>
                 <MaterialIcons name="recycling" size={22} color="#0F6B6E" />
                 <View>
-                  <Text style={styles.heroStatValue}>24</Text>
+                  <Text style={styles.heroStatValue}>{itemCount}</Text>
                   <Text style={styles.heroStatLabel}>Items recycled</Text>
                 </View>
               </Surface>
               <Surface style={styles.heroStatCard} elevation={0}>
                 <MaterialIcons name="savings" size={22} color="#0F6B6E" />
                 <View>
-                  <Text style={styles.heroStatValue}>$12.50</Text>
+                  <Text style={styles.heroStatValue}>${totalRebate.toFixed(2)}</Text>
                   <Text style={styles.heroStatLabel}>Rebate earned</Text>
                 </View>
               </Surface>
