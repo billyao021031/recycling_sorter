@@ -12,12 +12,6 @@ FreeCAD was used to:
 - Adjust dimensions to fit sensors, motors, and mechanical components
 - Export final models as .STL files for slicing
 
-Key advantages:
-
-- Parametric modeling allows easy modification
-- Open-source and compatible with multiple platforms
-- Suitable for mechanical component design
-
 ## 3D Printer
 
 All parts were printed using the Ender 3 V3 SE.
@@ -26,7 +20,7 @@ Typical printer settings:
 
 - Nozzle diameter: 0.4 mm  
 - Layer height: 0.2 mm  
-- Infill: 20–30%  
+- Infill: 10–30%  
 - Material: PLA  
 - Print temperature: 200°C  
 - Bed temperature: 60°C  
