@@ -31,36 +31,21 @@ Typical printer settings:
 - Print temperature: 200°C  
 - Bed temperature: 60°C  
 
-These settings provide a good balance between print strength and print time.
-
 ## Slicing Software
 
-All STL models were sliced using Ultimaker Cura.
+All STL models were sliced using **Ultimaker Cura**.
 
-Cura was used to:
+The slicing configuration used in this project is included in this repository as a Cura profile file so that the printing setup can be easily reproduced.
 
-- Generate G-code for the printer
-- Configure printing parameters
-- Add supports when required
+### Cura Profile
 
-Typical Cura settings:
+A Cura profile is provided:
 
-- Layer height: 0.2 mm
-- Infill: 20–30%
-- Print speed: 50 mm/s
-- Support: Enabled when necessary
-- Build plate adhesion: Skirt or Brim
+- `ender3v3se_PLA.curaprofile`
 
-## Printing Workflow
+This profile contains the slicing parameters used for printing the parts on the **Ender 3 V3 SE** printer.
 
-The typical workflow used in this project:
 
-1. Design the part in FreeCAD
-2. Export the model as STL
-3. Import the STL into Cura
-4. Configure print parameters
-5. Generate G-code
-6. Print using the Ender 3 V3 SE
 
 ## File Types
 
