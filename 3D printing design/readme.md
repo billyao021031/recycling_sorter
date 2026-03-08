@@ -41,7 +41,7 @@ The slicing configuration used in this project is included in this repository as
 
 A Cura profile is provided:
 
-- `ender3v3se_PLA.curaprofile`
+- `ece498 slicer setting.curaprofile`
 
 This profile contains the slicing parameters used for printing the parts on the **Ender 3 V3 SE** printer.
 
