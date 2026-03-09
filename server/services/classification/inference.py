@@ -1,3 +1,4 @@
+import asyncio
 import torch, os, io
 from PIL import Image
 import torchvision.transforms as transforms
@@ -39,3 +40,7 @@ def run_inference_model(tensor, weight_grams):
     m.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     m.eval().to(device)
     return _predict(m, device, tensor, weight_grams)
+
+
+async def run_inference_model_async(tensor, weight_grams):
+    return await asyncio.to_thread(run_inference_model, tensor, weight_grams)
