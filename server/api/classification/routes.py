@@ -1,7 +1,9 @@
+import asyncio
 import os
 import json
 import base64
 import datetime as dt
+import time
 from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Header
 from sqlalchemy.orm import Session
 from db.deps import get_db
@@ -9,7 +11,7 @@ from models import ClassificationLog, User, KioskLock
 from schemas.classification import PredictionResponse, HistoryItem
 from services.user.get_user import get_current_user
 from services.classification.image_upload import save_uploaded_image
-from services.classification.inference import preprocess_image, run_inference_model
+from services.classification.inference import preprocess_image, run_inference_model_async
 from openai import AsyncOpenAI
 from api.kiosk.routes import LOCK_TTL_SECONDS
 
@@ -98,6 +100,27 @@ async def _openai_classify(image_bytes: bytes, content_type: str) -> tuple[str, 
     confidence = float(payload.get("confidence", 0.0))
     return label, confidence
 
+
+async def _cnn_classify(tensor, weight_grams: float) -> dict:
+    cnn_started = time.perf_counter()
+    res = await run_inference_model_async(tensor, weight_grams=weight_grams)
+    cnn_elapsed = time.perf_counter() - cnn_started
+    print(f"CNN classification time: {cnn_elapsed:.3f}s")
+    return res
+
+
+async def _gpt_classify(image_bytes: bytes, content_type: str) -> tuple[str, float]:
+    gpt_started = time.perf_counter()
+    try:
+        label, confidence = await _openai_classify(image_bytes, content_type)
+        gpt_elapsed = time.perf_counter() - gpt_started
+        print(f"GPT classification time: {gpt_elapsed:.3f}s")
+        return label, confidence
+    except Exception:
+        gpt_elapsed = time.perf_counter() - gpt_started
+        print(f"GPT classification failed after: {gpt_elapsed:.3f}s")
+        raise
+
 def _get_lock(db: Session) -> KioskLock:
     lock = db.query(KioskLock).first()
     if lock:
@@ -142,19 +165,23 @@ async def predict(
 
     weight = weight * 0.054
     tensor = preprocess_image(img_bytes)
-    res = run_inference_model(tensor, weight_grams=weight)
-
-    cnn_label = _normalize_label(res["predicted_class"])
+    res: dict | None = None
+    cnn_label: str | None = None
     gpt_label: str | None = None
     gpt_conf: float | None = None
 
-    if signal != 1:
-        try:
-            gpt_label, gpt_conf = await _openai_classify(img_bytes, image.content_type)
-        except Exception:
-            if signal == 2:
-                gpt_label = None
-                gpt_conf = None
+    if signal == 1:
+        res = await _cnn_classify(tensor, weight)
+        cnn_label = _normalize_label(res["predicted_class"])
+    else:
+        cnn_task = asyncio.create_task(_cnn_classify(tensor, weight))
+        gpt_task = asyncio.create_task(_gpt_classify(img_bytes, image.content_type))
+        res, gpt_result = await asyncio.gather(cnn_task, gpt_task, return_exceptions=True)
+        if isinstance(res, Exception):
+            raise res
+        cnn_label = _normalize_label(res["predicted_class"])
+        if not isinstance(gpt_result, Exception):
+            gpt_label, gpt_conf = gpt_result
 
     if signal == 1:
         final_label = cnn_label
