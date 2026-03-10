@@ -173,6 +173,11 @@ async def predict(
     if signal == 1:
         res = await _cnn_classify(tensor, weight)
         cnn_label = _normalize_label(res["predicted_class"])
+    elif signal == 2:
+        try:
+            gpt_label, gpt_conf = await _gpt_classify(img_bytes, image.content_type)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail="GPT classification failed") from exc
     else:
         cnn_task = asyncio.create_task(_cnn_classify(tensor, weight))
         gpt_task = asyncio.create_task(_gpt_classify(img_bytes, image.content_type))
@@ -188,14 +193,9 @@ async def predict(
         final_conf = float(res["confidence"])
         raw_output = res["raw_output"]
     elif signal == 2:
-        if gpt_label is not None and gpt_conf is not None:
-            final_label = gpt_label
-            final_conf = gpt_conf
-            raw_output = [[final_conf]]
-        else:
-            final_label = cnn_label
-            final_conf = float(res["confidence"])
-            raw_output = res["raw_output"]
+        final_label = gpt_label
+        final_conf = gpt_conf
+        raw_output = [[final_conf]]
     else:
         use_gpt = gpt_label is not None and cnn_label != gpt_label
         final_label = gpt_label if use_gpt else cnn_label
