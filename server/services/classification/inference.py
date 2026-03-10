@@ -1,4 +1,5 @@
 import asyncio
+import threading
 import torch, os, io
 from PIL import Image
 import torchvision.transforms as transforms
@@ -7,6 +8,9 @@ from .mobilenet_with_mass import MobileNetWithMass
 CATEGORIES = ["Glass", "Metal", "Paper", "Plastic", "Others"]
 ROOT = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(ROOT, "model.pth")
+DEVICE = torch.device("cpu")
+_model: MobileNetWithMass | None = None
+_model_lock = threading.Lock()
 
 def preprocess_image(image_bytes):
     t = transforms.Compose([
@@ -34,12 +38,22 @@ def _predict(model, device, tensor, grams):
             "raw_output": out.cpu().numpy().tolist(),
         }
 
+
+def _get_model() -> MobileNetWithMass:
+    global _model
+    if _model is None:
+        with _model_lock:
+            if _model is None:
+                model = MobileNetWithMass(len(CATEGORIES), pretrained=False)
+                model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+                model.eval().to(DEVICE)
+                _model = model
+    return _model
+
+
 def run_inference_model(tensor, weight_grams):
-    device = torch.device("cpu")
-    m = MobileNetWithMass(len(CATEGORIES), pretrained=False)
-    m.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-    m.eval().to(device)
-    return _predict(m, device, tensor, weight_grams)
+    model = _get_model()
+    return _predict(model, DEVICE, tensor, weight_grams)
 
 
 async def run_inference_model_async(tensor, weight_grams):
