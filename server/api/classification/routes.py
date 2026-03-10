@@ -19,6 +19,7 @@ router = APIRouter()
 MACHINE_TOKEN = os.getenv("MACHINE_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 CATEGORIES = ["Glass", "Metal", "Paper", "Plastic", "Others"]
+GPT_TIMEOUT_SECONDS = 7.0
 
 _openai_client: AsyncOpenAI | None = None
 
@@ -101,11 +102,12 @@ async def _openai_classify(image_bytes: bytes, content_type: str) -> tuple[str, 
     return label, confidence
 
 
-async def _cnn_classify(tensor, weight_grams: float) -> dict:
+async def _cnn_classify(tensor, weight_grams: float, *, log_time: bool = True) -> dict:
     cnn_started = time.perf_counter()
     res = await run_inference_model_async(tensor, weight_grams=weight_grams)
     cnn_elapsed = time.perf_counter() - cnn_started
-    print(f"CNN classification time: {cnn_elapsed:.3f}s")
+    if log_time:
+        print(f"CNN classification time: {cnn_elapsed:.3f}s")
     return res
 
 
@@ -120,6 +122,19 @@ async def _gpt_classify(image_bytes: bytes, content_type: str) -> tuple[str, flo
         gpt_elapsed = time.perf_counter() - gpt_started
         print(f"GPT classification failed after: {gpt_elapsed:.3f}s")
         raise
+
+
+async def _gpt_classify_with_timeout(image_bytes: bytes, content_type: str) -> tuple[str, float] | None:
+    try:
+        return await asyncio.wait_for(
+            _gpt_classify(image_bytes, content_type),
+            timeout=GPT_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        print(f"GPT classification timed out after: {GPT_TIMEOUT_SECONDS:.3f}s")
+        return None
+    except Exception:
+        return None
 
 def _get_lock(db: Session) -> KioskLock:
     lock = db.query(KioskLock).first()
@@ -136,13 +151,10 @@ def _get_lock(db: Session) -> KioskLock:
 async def predict(
     image: UploadFile = File(...),
     weight: float = Form(...),
-    signal: int = Form(0),
     x_machine_token: str | None = Header(default=None, alias="X-Machine-Token"),
     db: Session = Depends(get_db)
 ):
     _require_machine_token(x_machine_token)
-    if signal not in (0, 1, 2):
-        raise HTTPException(status_code=400, detail="signal must be 0 (both), 1 (CNN only), or 2 (GPT only)")
 
     lock = _get_lock(db)
     now = dt.datetime.utcnow()
@@ -170,37 +182,17 @@ async def predict(
     gpt_label: str | None = None
     gpt_conf: float | None = None
 
-    if signal == 1:
-        res = await _cnn_classify(tensor, weight)
-        cnn_label = _normalize_label(res["predicted_class"])
-    elif signal == 2:
-        try:
-            gpt_label, gpt_conf = await _gpt_classify(img_bytes, image.content_type)
-        except Exception as exc:
-            raise HTTPException(status_code=502, detail="GPT classification failed") from exc
-    else:
-        cnn_task = asyncio.create_task(_cnn_classify(tensor, weight))
-        gpt_task = asyncio.create_task(_gpt_classify(img_bytes, image.content_type))
-        res, gpt_result = await asyncio.gather(cnn_task, gpt_task, return_exceptions=True)
-        if isinstance(res, Exception):
-            raise res
-        cnn_label = _normalize_label(res["predicted_class"])
-        if not isinstance(gpt_result, Exception):
-            gpt_label, gpt_conf = gpt_result
+    cnn_task = asyncio.create_task(_cnn_classify(tensor, weight))
+    gpt_task = asyncio.create_task(_gpt_classify_with_timeout(img_bytes, image.content_type))
+    res, gpt_result = await asyncio.gather(cnn_task, gpt_task)
+    cnn_label = _normalize_label(res["predicted_class"])
+    if gpt_result is not None:
+        gpt_label, gpt_conf = gpt_result
 
-    if signal == 1:
-        final_label = cnn_label
-        final_conf = float(res["confidence"])
-        raw_output = res["raw_output"]
-    elif signal == 2:
-        final_label = gpt_label
-        final_conf = gpt_conf
-        raw_output = [[final_conf]]
-    else:
-        use_gpt = gpt_label is not None and cnn_label != gpt_label
-        final_label = gpt_label if use_gpt else cnn_label
-        final_conf = gpt_conf if use_gpt else float(res["confidence"])
-        raw_output = [[final_conf]] if use_gpt else res["raw_output"]
+    use_gpt = gpt_label is not None and cnn_label != gpt_label
+    final_label = gpt_label if use_gpt else cnn_label
+    final_conf = gpt_conf if use_gpt else float(res["confidence"])
+    raw_output = [[final_conf]] if use_gpt else res["raw_output"]
 
     rebate_by_category = {
         "Glass": 0.10,
